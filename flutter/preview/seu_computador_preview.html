@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pré-visualização — Seu Computador</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f6f7fb; color:#222; }
+    .card { width: 480px; margin:48px auto; background:#fff; border-radius:8px; box-shadow:0 6px 18px rgba(16,24,40,0.08); padding:20px; }
+    .heading { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+    .heading h2 { margin:0; font-size:18px; color:#444; }
+    .row { display:flex; justify-content:space-between; align-items:center; margin:10px 0; }
+    .label { color:#888; font-size:13px; display:flex; align-items:center; gap:8px; }
+    .value { font-weight:700; font-size:24px; }
+    .actions { display:flex; gap:8px; }
+    .btn { background:#e6eef8; color:#0b5ed7; border:0; padding:6px 10px; border-radius:6px; cursor:pointer; }
+    .small { font-size:12px; color:#666; }
+    .state { margin-top:12px; color:#2b8a3e; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="heading">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C9.243 2 7 4.243 7 7v1H5.5A1.5 1.5 0 0 0 4 9.5v8A1.5 1.5 0 0 0 5.5 19H18.5A1.5 1.5 0 0 0 20 17.5v-8A1.5 1.5 0 0 0 18.5 8H17V7c0-2.757-2.243-5-5-5z" fill="#6b7280"/></svg>
+      <h2>Seu Computador</h2>
+    </div>
+
+    <div>
+      <div class="row">
+        <div class="label"><span>🔑</span>ID</div>
+        <div class="value" id="device-id">0000-0000-0000</div>
+      </div>
+
+      <div class="row">
+        <div class="label"><span>🔒</span>Senha (One-time)</div>
+        <div class="value" id="device-pass">-</div>
+      </div>
+
+      <div class="row">
+        <div class="small">Copie e compartilhe apenas com quem você confia.</div>
+        <div class="actions">
+          <button class="btn" onclick="copy('device-id')">Copiar ID</button>
+          <button class="btn" onclick="copy('device-pass')">Copiar Senha</button>
+        </div>
+      </div>
+
+      <div class="state" id="state-text">Ready</div>
+    </div>
+
+    <hr style="margin:18px 0; border:none; border-top:1px solid #eee" />
+    <div class="small">Este preview é estático. Para usar valores reais, edite os elementos abaixo ou atualize `custom_client.json` antes de compilar.</div>
+
+    <div style="margin-top:12px; display:flex; gap:8px; margin-left:auto; justify-content:flex-end">
+      <input id="id-input" placeholder="Insira ID" style="padding:6px; border-radius:6px; border:1px solid #ddd;" />
+      <input id="pass-input" placeholder="Insira Senha" style="padding:6px; border-radius:6px; border:1px solid #ddd;" />
+      <button class="btn" onclick="apply()">Aplicar</button>
+    </div>
+  </div>
+
+  <script>
+    function copy(id){
+      const txt = document.getElementById(id).innerText;
+      navigator.clipboard?.writeText(txt).then(()=>alert('Copiado: '+txt));
+    }
+    function apply(){
+      const id = document.getElementById('id-input').value || '0000-0000-0000';
+      const pass = document.getElementById('pass-input').value || '-';
+      document.getElementById('device-id').innerText = id;
+      document.getElementById('device-pass').innerText = pass;
+    }
+  </script>
+</body>
+</html>

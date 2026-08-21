@@ -34,6 +34,7 @@ import 'models/platform_model.dart';
 int? kWindowId;
 WindowType? kWindowType;
 late List<String> kBootArgs;
+Map<String, dynamic>? _customClientConfig;
 
 Future<void> main(List<String> args) async {
   earlyAssert();
@@ -41,6 +42,18 @@ Future<void> main(List<String> args) async {
 
   debugPrint("launch args: $args");
   kBootArgs = List.from(args);
+
+  // try load optional custom client config from asset: assets/custom_client.json
+  try {
+    final jsonStr = await rootBundle.loadString('assets/custom_client.json');
+    try {
+      _customClientConfig = jsonDecode(jsonStr) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('Failed to parse assets/custom_client.json: $e');
+    }
+  } catch (e) {
+    // ignore if asset not present
+  }
 
   if (!isDesktop) {
     runMobileApp();
@@ -168,8 +181,49 @@ void runMainApp(bool startService) async {
     }
     windowManager.setOpacity(1);
     windowManager.setTitle(getWindowName());
+    // Override title from custom config if provided
+    try {
+      if (_customClientConfig != null && _customClientConfig!['appName'] != null) {
+        await windowManager.setTitle(_customClientConfig!['appName'].toString());
+      }
+    } catch (e) {
+      debugPrint('Failed to set custom app name: $e');
+    }
     // Do not use `windowManager.setResizable()` here.
     setResizable(!bind.isIncomingOnly());
+
+    // Apply optional custom server and auto-connect if configured in assets/custom_client.json
+    try {
+      if (_customClientConfig != null) {
+        final server = _customClientConfig!['server'];
+        if (server != null && server.toString().isNotEmpty) {
+          await bind.mainSetOption(key: 'custom-rendezvous-server', value: server.toString());
+        }
+        final keyVal = _customClientConfig!['key'];
+        if (keyVal != null && keyVal.toString().isNotEmpty) {
+          await bind.mainSetOption(key: 'key', value: keyVal.toString());
+        }
+        
+
+        final connectId = _customClientConfig!['connectId'];
+        if (connectId != null && connectId.toString().isNotEmpty) {
+          Future.delayed(const Duration(milliseconds: 500), () async {
+            try {
+              final password = _customClientConfig!['connectPassword']?.toString();
+              await RustDeskMultiWindowManager.instance.newRemoteDesktop(
+                connectId.toString(),
+                password: password,
+                isSharedPassword: false,
+              );
+            } catch (e) {
+              debugPrint('Auto-connect failed: $e');
+            }
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Failed to apply custom client config: $e');
+    }
   });
 }
 
